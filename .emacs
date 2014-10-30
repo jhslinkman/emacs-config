@@ -33,9 +33,21 @@
 	simple-httpd
 	skewer-mode
 	ac-js2
+	json-mode
+	markdown-mode
+	auctex
+	auto-complete-auctex
+	bash-completion
+	php-mode
+	ess
+	pos-tip
+        polymode
 ))
 
 (mapc 'install-if-needed to-install)
+
+;; Position at point
+(require 'pos-tip)
 
 (require 'magit)
 (global-set-key "\C-xg" 'magit-status)
@@ -59,6 +71,11 @@
  ac-override-local-map nil
  ac-use-menu-map t
  ac-candidate-limit 20)
+
+;; Settings for all programming modes
+(add-hook 'prog-mode-hook 'linum-mode)
+(add-hook 'prog-mode-hook 'yas-minor-mode)
+(add-hook 'prog-mode-hook 'autopair-mode)
 
 ;; ;; Python mode settings
 (require 'python-mode)
@@ -103,6 +120,8 @@
   (interactive)
   (setq httpd-root (read-from-minibuffer "Server root directory: ")))
 
+(httpd-def-file-servlet php "c:/Users/John/programming/gni_d3_modules/php")
+
 ;; Skewer settings
 (add-hook 'js2-mode-hook 'skewer-mode)
 (add-hook 'js-mode-hook 'skewer-mode)
@@ -116,12 +135,18 @@
 (add-hook 'js2-mode-hook 'autopair-mode)
 (add-hook 'js2-mode-hook 'yas-minor-mode)
 
+
+;; json settings
+(require 'json-mode)
+(add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
+(add-hook 'json-mode-hook 'autopair-mode)
+
 ;; HTML settings
 (require 'multi-web-mode)
 (setq mweb-default-major-mode 'html-mode)
 (setq mweb-tags '((js-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
                   (css-mode "<style +type=\"text/css\"[^>]*>" "</style>")))
-(setq mweb-filename-extensions '("php" "htm" "html" "ctp" "phtml" "php4" "php5"))
+(setq mweb-filename-extensions '("htm" "html" "ctp"))
 (multi-web-global-mode 1)
 
 (add-hook 'js-mode-hook 'autopair-mode)
@@ -131,10 +156,72 @@
 (add-hook 'html-mode-hook 'autopair-mode)
 (add-hook 'html-mode-hook 'yas-minor-mode)
 
+;; Spell PHP mode
+(require 'php-mode)
+(add-to-list 'auto-mode-alist '("\\.php\\'" . php-mode))
+(add-hook 'php-mode-hook 'autopair-mode)
+
+;; SQL settings
+(require 'sql)
+(setq sql-mysql-options '("-C" "-t" "-f" "-n" "-P 3306"))
+(add-hook 'sql-mode-hook 'autopair-mode)
+(add-hook 'sql-mode-hook 'yas-minor-mode)
+(sql-set-product 'mysql)
+
+;; Tex and Latex
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(require 'auto-complete-auctex)
+(add-hook 'TeX-mode-hook 'autopair-mode)
+
+;; Markdown mode
+(require 'markdown-mode)
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+(add-hook 'markdown-mode-hook 'autopair-mode)
+
 ;; Emacs Lisp settings
 (add-hook 'emacs-lisp-mode-hook 'autopair-mode)
 (add-hook 'emacs-lisp-mode-hook 'yas-minor-mode)
 
+;; libraries for working with things
+(require 'thingatpt)
+(load "~/lib/thing-edit.el") ; http://www.emacswiki.org/emacs/download/thing-edit.el
+
+;; Cygwin
+
+(defun cygwin-shell ()
+  "Run cygwin bash in shell mode."
+  (interactive)
+  (let ((explicit-shell-file-name "C:/cygwin64/bin/bash")
+	(explicit-bash-args '("--login" "-i")))
+    (call-interactively 'shell)))
+
+;; bash completion
+
+(autoload 'bash-completion-dynamic-complete 
+  "bash-completion"
+  "BASH completion hook")
+(add-hook 'shell-dynamic-complete-functions
+  'bash-completion-dynamic-complete)
+(add-hook 'shell-command-complete-functions
+  'bash-completion-dynamic-complete)
+
+;; ess
+(require 'ess-site)
+(add-hook 'ess-R-post-run-hook 'autopair-mode)
+(add-hook 'ess-mode-hook 'auto-complete-mode)
+(add-hook 'ess-mode-hook 'autopair-mode)
+
+(setq inferior-R-program-name "C:\\Program Files\\R\\R-3.1.1\\bin\\x64\\Rterm.exe")
+
+(add-to-list 'auto-mode-alist '("\\.Rmd\\'" . poly-markdown+r-mode))
+
+(setq ac-quick-help-prefer-pos-tip t)
+(setq ac-auto-show-menu 1)
+;; Doc-view
+(setq doc-view-ghostscript-program "gswin64c")
+(add-to-list 'image-library-alist '(png "libpng12.dll"))
 
 ;; -------------------- extra nice things --------------------
 ;; use shift to move around windows
@@ -148,6 +235,40 @@
 (custom-set-variables
  '(custom-enabled-themes (quote (misterioso))))
 (custom-set-faces)
+
+;; Spaces instead of tabs
+(setq-default intent-tabs-mode nil )
+
+;; some extra odds and ends
+
+(defun move-right-and-insert-comma ()
+  "Move the cursor right one character and insert a ','."
+  (interactive)
+  (forward-char)
+  (insert ","))
+
+
+(defun comma-region (posBegin posEnd)
+  "Insert commas between each character in region."
+  (interactive "r")
+  (let (charCount)
+    (setq charCount (- posEnd posBegin))
+    (goto-char posBegin)
+    (while (> charCount 1)
+      (move-right-and-insert-comma)
+      (setq charCount (1- charCount)))))
+
+(defun comma-word ()
+  "Insert commas between each character in word."
+  (interactive)
+  (let ((posBegin (point))
+	charCount)
+    (forward-word)
+    (setq charCount (- (point) posBegin))
+    (goto-char posBegin)
+    (while (> charCount 1)
+      (move-right-and-insert-comma)
+      (setq charCount (1- charCount)))))
 
 
 (provide '.emacs)
