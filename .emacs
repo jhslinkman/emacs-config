@@ -42,6 +42,7 @@
 	ess
 	pos-tip
         polymode
+	web-mode
 ))
 
 (mapc 'install-if-needed to-install)
@@ -57,6 +58,7 @@
 
 ;; yasnippet settings
 (require 'yasnippet)
+(add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
 (yas-reload-all)
 
 ;; Flycheck settings
@@ -142,19 +144,26 @@
 (add-hook 'json-mode-hook 'autopair-mode)
 
 ;; HTML settings
-(require 'multi-web-mode)
-(setq mweb-default-major-mode 'html-mode)
-(setq mweb-tags '((js-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
-                  (css-mode "<style +type=\"text/css\"[^>]*>" "</style>")))
-(setq mweb-filename-extensions '("htm" "html" "ctp"))
-(multi-web-global-mode 1)
+;; (require 'multi-web-mode)
+;; (setq mweb-default-major-mode 'html-mode)
+;; (setq mweb-tags '((js-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
+;;                   (css-mode "<style +type=\"text/css\"[^>]*>" "</style>")))
+;; (setq mweb-filename-extensions '("htm" "html" "ctp"))
+;; (multi-web-global-mode 1)
 
-(add-hook 'js-mode-hook 'autopair-mode)
-(add-hook 'js-mode-hook 'yas-minor-mode)
-(add-hook 'css-mode-hook 'autopair-mode)
-(add-hook 'css-mode-hook 'yas-minor-mode)
-(add-hook 'html-mode-hook 'autopair-mode)
-(add-hook 'html-mode-hook 'yas-minor-mode)
+;; (add-hook 'js-mode-hook 'autopair-mode)
+;; (add-hook 'js-mode-hook 'yas-minor-mode)
+;; (add-hook 'css-mode-hook 'autopair-mode)
+;; (add-hook 'css-mode-hook 'yas-minor-mode)
+;; (add-hook 'html-mode-hook 'autopair-mode)
+;; (add-hook 'html-mode-hook 'yas-minor-mode)
+
+
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(setq web-mode-enable-current-element-highlight nil)
+(add-hook 'web-mode-hook 'autopair-mode)
+(add-hook 'web-mode-hook 'yas-minor-mode)
 
 ;; Spell PHP mode
 (require 'php-mode)
@@ -214,6 +223,7 @@
 (add-hook 'ess-mode-hook 'autopair-mode)
 
 (setq inferior-R-program-name "C:\\Program Files\\R\\R-3.1.1\\bin\\x64\\Rterm.exe")
+(setq inferior-julia-program-name "C:\\Julia\\Julia-0.3.5\\Julia\\bin\\julia.exe")
 
 (add-to-list 'auto-mode-alist '("\\.Rmd\\'" . poly-markdown+r-mode))
 
@@ -222,6 +232,15 @@
 ;; Doc-view
 (setq doc-view-ghostscript-program "gswin64c")
 (add-to-list 'image-library-alist '(png "libpng12.dll"))
+
+;; org mode
+
+(require 'org)
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+(setq org-log-done t)
+
+(setq org-agenda-files (list "~/org/"))
 
 ;; -------------------- extra nice things --------------------
 ;; use shift to move around windows
@@ -235,6 +254,11 @@
 (custom-set-variables
  '(custom-enabled-themes (quote (misterioso))))
 (custom-set-faces)
+
+;; initialization settings
+(add-hook 'after-init-hook 'org-agenda-list)
+(add-hook 'after-init-hook (lambda () (delete-other-windows)))
+(setq inhibit-splash-screen t)
 
 ;; Spaces instead of tabs
 (setq-default intent-tabs-mode nil )
@@ -273,3 +297,4 @@
 
 (provide '.emacs)
 ;;; .emacs ends here
+(put 'dired-find-alternate-file 'disabled nil)
