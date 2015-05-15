@@ -43,6 +43,8 @@
 	pos-tip
         polymode
 	web-mode
+	less-css-mode
+	ensime
 ))
 
 (mapc 'install-if-needed to-install)
@@ -85,6 +87,7 @@
 (setq py-electric-colon-active t)
 (add-hook 'python-mode-hook 'autopair-mode)
 (add-hook 'python-mode-hook 'yas-minor-mode)
+(add-hook 'python-mode-hook 'linum-mode)
 
 (setq
  python-shell-interpreter "ipython")
@@ -130,6 +133,7 @@
 (add-hook 'css-mode-hook 'skewer-css-mode)
 (add-hook 'html-mode-hook 'skewer-html-mode)
 ;; (add-hook 'html-mode-hook 'skewer-html-mode)
+(add-hook 'css-mode-hook 'autopair-mode)
 
 ;; JavaScript settings
 (require 'js2-mode)
@@ -161,9 +165,14 @@
 
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.hbs?\\'" . web-mode))
 (setq web-mode-enable-current-element-highlight nil)
 (add-hook 'web-mode-hook 'autopair-mode)
 (add-hook 'web-mode-hook 'yas-minor-mode)
+
+(require 'less-css-mode)
+(add-to-list 'auto-mode-alist '("\\.less\\'" . less-css-mode))
+(add-hook 'less-css-mode-hook 'autopair-mode)
 
 ;; Spell PHP mode
 (require 'php-mode)
@@ -188,6 +197,15 @@
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-hook 'markdown-mode-hook 'autopair-mode)
+
+;; Scala
+(setq exec-path (append exec-path '("C:/Program Files (x86)/sbt/bin")))
+;; (setenv "PATH" (concat "/path/to/scala/bin:" (getenv "PATH")))
+
+(require 'ensime)
+(add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
+
+
 
 ;; Emacs Lisp settings
 (add-hook 'emacs-lisp-mode-hook 'autopair-mode)
@@ -221,6 +239,7 @@
 (add-hook 'ess-R-post-run-hook 'autopair-mode)
 (add-hook 'ess-mode-hook 'auto-complete-mode)
 (add-hook 'ess-mode-hook 'autopair-mode)
+(add-hook 'ess-mode-hook 'linum-mode)
 
 (setq inferior-R-program-name "C:\\Program Files\\R\\R-3.1.1\\bin\\x64\\Rterm.exe")
 (setq inferior-julia-program-name "C:\\Julia\\Julia-0.3.5\\Julia\\bin\\julia.exe")
