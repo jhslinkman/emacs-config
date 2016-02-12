@@ -24,6 +24,12 @@
 	magit
 	yasnippet
 	jedi
+	virtualenvwrapper
+	websocket
+	request
+	ein
+	;; ein-mumamo
+	;; mumamo
 	auto-complete
 	autopair
 	find-file-in-repository
@@ -38,13 +44,14 @@
 	auctex
 	auto-complete-auctex
 	bash-completion
-	php-mode
+	;; php-mode
 	ess
 	pos-tip
         polymode
 	web-mode
 	less-css-mode
 	ensime
+	yafolding
 ))
 
 (mapc 'install-if-needed to-install)
@@ -80,28 +87,38 @@
 (add-hook 'prog-mode-hook 'linum-mode)
 (add-hook 'prog-mode-hook 'yas-minor-mode)
 (add-hook 'prog-mode-hook 'autopair-mode)
+(add-hook 'prog-mode-hook (lambda()
+			    (setq indent-tabs-mode nil)))
 
 ;; ;; Python mode settings
+
+(require 'virtualenvwrapper)
+(venv-initialize-interactive-shells)
+(venv-initialize-eshell)
+(setq venv-location "c:/venvs/")
+(setq ein:console-args '("--profile" "default"))
+
+(require 'ein)
+
 (require 'python-mode)
 (add-to-list 'auto-mode-alist '("\\.py$" . python-mode))
 (setq py-electric-colon-active t)
-(add-hook 'python-mode-hook 'autopair-mode)
-(add-hook 'python-mode-hook 'yas-minor-mode)
 (add-hook 'python-mode-hook 'linum-mode)
 
 (setq
  python-shell-interpreter "ipython")
 
-;; ;; Jedi settings
+;; ;; ;; Jedi settings
 (require 'jedi)
-;; It's also required to run "pip install --user jedi" and "pip
-;; install --user epc" to get the Python side of the library work
-;; correctly.
-;; With the same interpreter you're using.
+(add-hook 'ein:connect-mode-hook 'ein:jedi-setup)
+;; ;; It's also required to run "pip install --user jedi" and "pip
+;; ;; install --user epc" to get the Python side of the library work
+;; ;; correctly.
+;; ;; With the same interpreter you're using.
 
-;; if you need to change your python intepreter, if you want to change it
-;; (setq jedi:server-command
-;;       '("python2" "/home/andrea/.emacs.d/elpa/jedi-0.1.2/jediepcserver.py"))
+;; ;; if you need to change your python intepreter, if you want to change it
+;; ;; (setq jedi:server-command
+;; ;;       '("python2" "/home/andrea/.emacs.d/elpa/jedi-0.1.2/jediepcserver.py"))
 
 (add-hook 'python-mode-hook
 	  (lambda ()
@@ -112,7 +129,13 @@
             (local-set-key (kbd "M-.") 'jedi:goto-definition)))
 
 
-(add-hook 'python-mode-hook 'auto-complete-mode)
+
+(add-hook 'python-mode 'auto-complete-mode)
+(add-hook 'python-mode-hook (lambda ()
+			      (setq-default indent-tabs-mode nil)
+			      (setq-default tab-width 4)
+			      (setq-default py-indent-tabs-mode nil)
+			      (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
 
 (ido-mode t)
 
@@ -125,22 +148,17 @@
   (interactive)
   (setq httpd-root (read-from-minibuffer "Server root directory: ")))
 
-(httpd-def-file-servlet php "c:/Users/John/programming/gni_d3_modules/php")
-
 ;; Skewer settings
-(add-hook 'js2-mode-hook 'skewer-mode)
-(add-hook 'js-mode-hook 'skewer-mode)
-(add-hook 'css-mode-hook 'skewer-css-mode)
+;; (add-hook 'js2-mode-hook 'skewer-mode)
+;; (add-hook 'js-mode-hook 'skewer-mode)
+;; (add-hook 'css-mode-hook 'skewer-css-mode)
 (add-hook 'html-mode-hook 'skewer-html-mode)
-;; (add-hook 'html-mode-hook 'skewer-html-mode)
 (add-hook 'css-mode-hook 'autopair-mode)
 
 ;; JavaScript settings
 (require 'js2-mode)
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-(add-hook 'js2-mode-hook 'autopair-mode)
-(add-hook 'js2-mode-hook 'yas-minor-mode)
-
+(setq js-indent-level 4)
 
 ;; json settings
 (require 'json-mode)
@@ -174,11 +192,6 @@
 (add-to-list 'auto-mode-alist '("\\.less\\'" . less-css-mode))
 (add-hook 'less-css-mode-hook 'autopair-mode)
 
-;; Spell PHP mode
-(require 'php-mode)
-(add-to-list 'auto-mode-alist '("\\.php\\'" . php-mode))
-(add-hook 'php-mode-hook 'autopair-mode)
-
 ;; SQL settings
 (require 'sql)
 (setq sql-mysql-options '("-C" "-t" "-f" "-n" "-P 3306"))
@@ -197,6 +210,10 @@
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-hook 'markdown-mode-hook 'autopair-mode)
+(add-hook 'markdown-mode-hook 'linum-mode)
+(add-hook 'markdown-mode-hook 'yas-minor-mode)
+(add-hook 'markdown-mode-hook (lambda()
+			    (setq indent-tabs-mode nil)))
 
 ;; Scala
 (setq exec-path (append exec-path '("C:/Program Files (x86)/sbt/bin")))
@@ -226,7 +243,7 @@
 
 ;; bash completion
 
-(autoload 'bash-completion-dynamic-complete 
+(autoload 'bash-completion-dynamic-complete
   "bash-completion"
   "BASH completion hook")
 (add-hook 'shell-dynamic-complete-functions
@@ -241,7 +258,7 @@
 (add-hook 'ess-mode-hook 'autopair-mode)
 (add-hook 'ess-mode-hook 'linum-mode)
 
-(setq inferior-R-program-name "C:\\Program Files\\R\\R-3.1.1\\bin\\x64\\Rterm.exe")
+(setq inferior-R-program-name "C:\\Program Files\\R\\R-3.2.2\\bin\\x64\\Rterm.exe")
 (setq inferior-julia-program-name "C:\\Julia\\Julia-0.3.5\\Julia\\bin\\julia.exe")
 
 (add-to-list 'auto-mode-alist '("\\.Rmd\\'" . poly-markdown+r-mode))
@@ -252,14 +269,50 @@
 (setq doc-view-ghostscript-program "gswin64c")
 (add-to-list 'image-library-alist '(png "libpng12.dll"))
 
+(ess-toggle-underscore nil)
+
+(defun ess-rmarkdown (&optional pdf)
+  "Compile R markdown (.Rmd). Should work for any output type."
+  (interactive)
+					; Check if attached R-session
+  (condition-case nil
+      (ess-get-process)
+    (error
+     (ess-switch-process)))
+  (let* ((rmd-buf (current-buffer))
+	 (system-command (if pdf
+			     "library(rmarkdown); rmarkdown::render(\"%s\", \"pdf_document\")"
+			   "library(rmarkdown); rmarkdown::render(\"%s\")")))
+    (save-excursion
+      (let* ((sprocess (ess-get-process ess-current-process-name))
+	     (sbuffer (process-buffer sprocess))
+	     (buf-coding (symbol-name buffer-file-coding-system))
+	     (R-cmd
+	      (format system-command
+		      buffer-file-name)))
+	(message "Running rmarkdown on %s" buffer-file-name)
+	(ess-execute R-cmd 'buffer nil nil)
+	(switch-to-buffer rmd-buf)
+	(ess-show-buffer (buffer-name sbuffer) nil)))))
+
+(defun html-preview ()
+  "Open current buffer's .html preview in browser."
+  (interactive)
+  (let* ((fbase (file-name-sans-extension (buffer-name (current-buffer))))
+	 (fhtml ( concat fbase ".html")))
+    (if (file-exists-p fhtml)
+	(browse-url-of-file fhtml)
+      (message (concat fhtml " does not exist.")))
+    ))
+
 ;; org mode
 
-(require 'org)
-(define-key global-map "\C-cl" 'org-store-link)
-(define-key global-map "\C-ca" 'org-agenda)
-(setq org-log-done t)
+;; (require 'org)
+;; (define-key global-map "\C-cl" 'org-store-link)
+;; (define-key global-map "\C-ca" 'org-agenda)
+;; (setq org-log-done t)
 
-(setq org-agenda-files (list "~/org/"))
+;; (setq org-agenda-files (list "~/org/"))
 
 ;; -------------------- extra nice things --------------------
 ;; use shift to move around windows
@@ -268,6 +321,7 @@
  ; Turn beep off
 (setq visible-bell nil)
 (setq dired-isearch-filenames t)
+(setq save-interprogram-paste-before-kill t)
 
 ;; Aesthetics
 (custom-set-variables
@@ -275,12 +329,11 @@
 (custom-set-faces)
 
 ;; initialization settings
-(add-hook 'after-init-hook 'org-agenda-list)
 (add-hook 'after-init-hook (lambda () (delete-other-windows)))
 (setq inhibit-splash-screen t)
 
 ;; Spaces instead of tabs
-(setq-default intent-tabs-mode nil )
+(setq-default intent-tabs-mode nil)
 
 ;; some extra odds and ends
 
